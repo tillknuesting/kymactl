@@ -1,0 +1,6 @@
+apiVersion: inventory.kyma-project.io/v1alpha1
+kind: HelmComponent
+metadata:
+  name: helmcomponent-sample
+spec:
+  # TODO(user): Add fields here

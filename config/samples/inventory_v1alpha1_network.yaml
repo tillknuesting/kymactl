@@ -1,0 +1,6 @@
+apiVersion: inventory.kyma-project.io/v1alpha1
+kind: Network
+metadata:
+  name: network-sample
+spec:
+  # TODO(user): Add fields here

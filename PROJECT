@@ -1,0 +1,52 @@
+domain: kyma-project.io
+layout:
+- go.kubebuilder.io/v3
+projectName: kymactl
+repo: github.com/kyma-incubator/kymactl
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: inventory
+  kind: Cluster
+  path: github.com/kyma-incubator/kymactl/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: inventory
+  kind: HelmComponent
+  path: github.com/kyma-incubator/kymactl/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: inventory
+  kind: Runtime
+  path: github.com/kyma-incubator/kymactl/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: inventory
+  kind: Network
+  path: github.com/kyma-incubator/kymactl/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: inventory
+  kind: Kyma
+  path: github.com/kyma-incubator/kymactl/api/v1alpha1
+  version: v1alpha1
+version: "3"
