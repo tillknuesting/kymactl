@@ -1,6 +1,66 @@
 apiVersion: inventory.kyma-project.io/v1alpha1
 kind: Kyma
 metadata:
-  name: kyma-sample
+  name: kyma-sample-1
 spec:
-  # TODO(user): Add fields here
+  components:
+  - name: eventing
+  - name: serverless
+
+---
+apiVersion: inventory.kyma-project.io/v1alpha1
+kind: Kyma
+metadata:
+  name: kyma-sample-2
+spec:
+  components:
+  - name: "istio"
+    namespace: "istio-system"
+  - name: "cluster-essentials"
+  - name: "certificates"
+    namespace: "istio-system"
+  - name: "istio-resources"
+  - name: "logging"
+  - name: "tracing"
+  - name: "kiali"
+  - name: "monitoring"
+  - name: "eventing"
+  - name: "ory"
+  - name: "api-gateway"
+  - name: "service-catalog"
+  - name: "service-catalog-addons"
+  - name: "rafter"
+  - name: "helm-broker"
+  - name: "cluster-users"
+  - name: "serverless"
+  - name: "application-connector"
+    namespace: "kyma-integration"
+
+---
+apiVersion: inventory.kyma-project.io/v1alpha1
+kind: Kyma
+metadata:
+  name: kyma-sample-3
+spec:
+  components:
+  - name: "istio"
+    namespace: "istio-system"
+  - name: "cluster-essentials"
+  - name: "certificates"
+    namespace: "istio-system"
+  - name: "istio-resources"
+  - name: "logging"
+  - name: "tracing"
+  - name: "kiali"
+  - name: "monitoring"
+  - name: "eventing"
+  - name: "ory"
+  - name: "api-gateway"
+  - name: "service-catalog"
+  - name: "service-catalog-addons"
+  - name: "rafter"
+  - name: "helm-broker"
+  - name: "cluster-users"
+  - name: "serverless"
+  - name: "application-connector"
+    namespace: "kyma-integration"

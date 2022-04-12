@@ -15,7 +15,11 @@ spec:
     singular: helmcomponent
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: HelmComponent is the Schema for the helmcomponents API
@@ -52,6 +56,14 @@ spec:
             type: object
           status:
             description: HelmComponentStatus defines the observed state of HelmComponent
+            properties:
+              lastReconciliation:
+                description: Information when was the last time the job was successfully
+                  scheduled.
+                format: date-time
+                type: string
+              status:
+                type: string
             type: object
         type: object
     served: true

@@ -18,11 +18,14 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	inventoryv1alpha1 "github.com/kyma-incubator/kymactl/api/v1alpha1"
 )
@@ -47,10 +50,43 @@ type HelmComponentReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
+	var helmComponent inventoryv1alpha1.HelmComponent
+	log.Info("Helm reconciliation started")
+	if err := r.Get(ctx, req.NamespacedName, &helmComponent); err != nil {
+		log.Info("unable to fetch HelmComponent")
 
-	// TODO(user): your logic here
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	requeue := 0 * time.Second
+	switch helmComponent.Status.Status {
+	case "pending":
+		helmComponent.Status.Status = "started"
+		requeue = 10 * time.Second
+	case "started":
+		helmComponent.Status.Status = "failing"
+		requeue = 30 * time.Second
+	case "failing":
+		helmComponent.Status.Status = "retrying"
+		requeue = 10 * time.Second
+	case "retrying":
+		helmComponent.Status.Status = "success"
+		requeue = 1 * time.Second
+	case "success":
+		requeue = 0 * time.Second
 
+	default:
+		helmComponent.Status.Status = "pending"
+		requeue = 5 * time.Second
+	}
+
+	log.Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
+	if requeue > 0*time.Second {
+		if err := r.Status().Update(ctx, &helmComponent); err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{RequeueAfter: requeue}, nil
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -58,5 +94,7 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 func (r *HelmComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.HelmComponent{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		Complete(r)
 }

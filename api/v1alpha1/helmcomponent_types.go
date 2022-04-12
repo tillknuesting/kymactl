@@ -45,10 +45,19 @@ type HelmComponentSpec struct {
 type HelmComponentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// A list of pointers to currently running jobs.
+
+	// +optional
+	Status string `json:"status,omitempty"`
+
+	// Information when was the last time the job was successfully scheduled.
+	// +optional
+	LastReconciliation *metav1.Time `json:"lastReconciliation,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status"
 
 // HelmComponent is the Schema for the helmcomponents API
 type HelmComponent struct {

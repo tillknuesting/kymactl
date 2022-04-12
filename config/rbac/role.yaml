@@ -60,6 +60,32 @@ rules:
 - apiGroups:
   - inventory.kyma-project.io
   resources:
+  - kymas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - inventory.kyma-project.io
+  resources:
+  - kymas/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - inventory.kyma-project.io
+  resources:
+  - kymas/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - inventory.kyma-project.io
+  resources:
   - networks
   verbs:
   - create
