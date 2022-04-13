@@ -71,3 +71,4 @@ func CustomRateLimiter() ratelimiter.RateLimiter {
 		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(30), 200)})
 }
 ```
+Good explanation of rate limits in controllers: [https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/?utm_source=pocket_mylist](https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/?utm_source=pocket_mylist)
