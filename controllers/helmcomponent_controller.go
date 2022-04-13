@@ -73,16 +73,16 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		requeue = 30 * time.Second
 	case "failing":
 		helmComponent.Status.Status = "retrying"
-		requeue = 10 * time.Second
+		requeue = 30 * time.Second
 	case "retrying":
 		helmComponent.Status.Status = "success"
-		requeue = 1 * time.Second
+		requeue = 30 * time.Second
 	case "success":
 		requeue = 0 * time.Second
 
 	default:
 		helmComponent.Status.Status = "pending"
-		requeue = 5 * time.Second
+		requeue = 1 * time.Second
 	}
 
 	log.V(2).Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)

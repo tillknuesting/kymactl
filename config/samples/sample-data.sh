@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in {1..200}
+for i in {1301..1400}
 do
    echo "$i"
    cat <<EOF | kubectl apply -f -
