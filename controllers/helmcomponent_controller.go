@@ -97,7 +97,7 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-func FasterRateLimiter() ratelimiter.RateLimiter {
+func CustomRateLimiter() ratelimiter.RateLimiter {
 	return workqueue.NewMaxOfRateLimiter(
 		workqueue.NewItemExponentialFailureRateLimiter(1*time.Second, 1000*time.Second),
 		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(30), 200)})
@@ -108,6 +108,6 @@ func (r *HelmComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.HelmComponent{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: FasterRateLimiter()}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: CustomRateLimiter()}).
 		Complete(r)
 }

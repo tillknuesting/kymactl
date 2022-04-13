@@ -160,6 +160,6 @@ func (r *KymaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.Kyma{}).
 		Owns(&inventoryv1alpha1.HelmComponent{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: FasterRateLimiter()}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: CustomRateLimiter()}).
 		Complete(r)
 }
