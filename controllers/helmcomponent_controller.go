@@ -20,6 +20,10 @@ import (
 	"context"
 	"time"
 
+	"golang.org/x/time/rate"
+	"k8s.io/client-go/util/workqueue"
+	"sigs.k8s.io/controller-runtime/pkg/ratelimiter"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,14 +56,15 @@ type HelmComponentReconciler struct {
 func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 	var helmComponent inventoryv1alpha1.HelmComponent
-	log.Info("Helm reconciliation started")
+	log.V(2).Info("Helm reconciliation started")
 	if err := r.Get(ctx, req.NamespacedName, &helmComponent); err != nil {
 		log.Info("unable to fetch HelmComponent")
 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	prevStatus := helmComponent.Status.Status
 	requeue := 0 * time.Second
-	switch helmComponent.Status.Status {
+	switch prevStatus {
 	case "pending":
 		helmComponent.Status.Status = "started"
 		requeue = 10 * time.Second
@@ -80,14 +85,22 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		requeue = 5 * time.Second
 	}
 
-	log.Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
-	if requeue > 0*time.Second {
+	log.V(2).Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
+	if helmComponent.Status.Status != prevStatus {
 		if err := r.Status().Update(ctx, &helmComponent); err != nil {
 			return ctrl.Result{}, err
 		}
+	}
+	if requeue > 0*time.Second {
 		return ctrl.Result{RequeueAfter: requeue}, nil
 	}
 	return ctrl.Result{}, nil
+}
+
+func FasterRateLimiter() ratelimiter.RateLimiter {
+	return workqueue.NewMaxOfRateLimiter(
+		workqueue.NewItemExponentialFailureRateLimiter(1*time.Second, 1000*time.Second),
+		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(30), 200)})
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -95,6 +108,6 @@ func (r *HelmComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.HelmComponent{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: FasterRateLimiter()}).
 		Complete(r)
 }

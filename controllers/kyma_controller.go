@@ -52,11 +52,11 @@ type KymaReconciler struct {
 
 func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
-	log.Info("Kyma reconciliation happened")
+	log.V(2).Info("Kyma reconciliation happened")
 
 	var kyma inventoryv1alpha1.Kyma
 	if err := r.Get(ctx, req.NamespacedName, &kyma); err != nil {
-		log.Info("unable to fetch Kyma resource")
+		log.V(1).Info("unable to fetch Kyma resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -66,7 +66,7 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Fetching components", "count", len(components.Items))
+	log.V(2).Info("Fetching components", "count", len(components.Items))
 
 	constructComponentForKyma := func(kyma *inventoryv1alpha1.Kyma, module inventoryv1alpha1.ComponentSpec) (*inventoryv1alpha1.HelmComponent, error) {
 		name := fmt.Sprintf("%s-%s", kyma.Name, module.Name)
@@ -160,6 +160,6 @@ func (r *KymaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.Kyma{}).
 		Owns(&inventoryv1alpha1.HelmComponent{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: FasterRateLimiter()}).
 		Complete(r)
 }
