@@ -33,6 +33,7 @@ make docker-build docker-push IMG=ghcr.io/pbochynski/kyma-operator:0.0.1
 
 Run controller:
 ```
+make install 
 make deploy IMG=ghcr.io/pbochynski/kyma-operator:0.0.1
 ```
 
@@ -42,3 +43,4 @@ make deploy IMG=ghcr.io/pbochynski/kyma-operator:0.0.1
 kubectl create ns pb
 ./config/samples/sample-data.sh
 ```
+
