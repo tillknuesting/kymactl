@@ -19,7 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -34,6 +36,13 @@ import (
 type KymaReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+func IgnoreAlreadyExists(err error) error {
+	if apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
 }
 
 //+kubebuilder:rbac:groups=inventory.kyma-project.io,resources=kymas,verbs=get;list;watch;create;update;patch;delete
@@ -54,16 +63,21 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	log := log.FromContext(ctx)
 	log.V(2).Info("Kyma reconciliation happened")
 
-	var kyma inventoryv1alpha1.Kyma
-	if err := r.Get(ctx, req.NamespacedName, &kyma); err != nil {
-		log.V(1).Info("unable to fetch Kyma resource")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-
 	var components inventoryv1alpha1.HelmComponentList
 	if err := r.List(ctx, &components, client.InNamespace(req.Namespace), client.MatchingFields{componentOwnerKey: req.Name}); err != nil {
 		log.Error(err, "unable to list child components")
 		return ctrl.Result{}, err
+	}
+
+	var kyma inventoryv1alpha1.Kyma
+	if err := r.Get(ctx, req.NamespacedName, &kyma); err != nil {
+		if apierrors.IsNotFound(err) {
+			// Kyma not found - delete all components
+			for _, c := range components.Items {
+				r.Delete(ctx, &c)
+			}
+		}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	log.V(2).Info("Fetching components", "count", len(components.Items))
@@ -105,7 +119,7 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 			if err := r.Create(ctx, component); err != nil {
 				log.Error(err, "unable to create Helm component", "component", component)
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, IgnoreAlreadyExists(err)
 			}
 		}
 	}

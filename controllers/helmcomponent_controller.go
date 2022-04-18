@@ -100,7 +100,7 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 func CustomRateLimiter() ratelimiter.RateLimiter {
 	return workqueue.NewMaxOfRateLimiter(
 		workqueue.NewItemExponentialFailureRateLimiter(1*time.Second, 1000*time.Second),
-		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(30), 200)})
+		&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(150), 200)})
 }
 
 // SetupWithManager sets up the controller with the Manager.
