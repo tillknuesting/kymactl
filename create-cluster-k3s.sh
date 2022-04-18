@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit
 
-echo "starting docker registry"
+echo "Starting docker registry"
 sudo mkdir -p /etc/rancher/k3s
 sudo cp registries.yaml /etc/rancher/k3s
 docker run -d \
@@ -11,7 +11,7 @@ docker run -d \
 -v $PWD/registry:/var/lib/registry \
 eu.gcr.io/kyma-project/test-infra/docker-registry-2:20200202
 
-echo "starting cluster"
+echo "Starting cluster"
 curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.21.11+k3s1" K3S_KUBECONFIG_MODE=777 INSTALL_K3S_EXEC="server --disable traefik" sh -
 mkdir -p ~/.kube
 cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
