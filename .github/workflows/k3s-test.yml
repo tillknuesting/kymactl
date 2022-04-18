@@ -22,12 +22,10 @@ jobs:
     timeout-minutes: 60
     steps:
     - uses: actions/checkout@v2 
-    - uses: debianmaster/actions-k3s@master
-      id: k3s
-      with:
-        version: 'v1.21.11-k3s1'
-    - run: |
-        kubectl get nodes
+    - name: Prepare docker registry and k3s
+      run: |
+        ./create-cluster-k3s.sh
+        while [[ $(kubectl get nodes -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do echo "Waiting for cluster nodes to be ready"; sleep 2; done
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
