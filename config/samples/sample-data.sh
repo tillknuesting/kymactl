@@ -1,11 +1,10 @@
 #!/bin/bash
 kubectl create ns pb
 FROM=1
-TO=200
+TO=100
 i=$FROM
 while [[ $i -le $TO ]]
 do
-   echo "$i"
    cat <<EOF | kubectl apply -f -
 apiVersion: inventory.kyma-project.io/v1alpha1
 kind: Kyma
@@ -45,6 +44,6 @@ echo "Last component reconciled in $SECONDS sec."
 
 if [ $SECONDS -ge 100 ]
 then
-  echo "Reconciliation took too long. Expected time: 68 - 90 seconds."
+  echo "Reconciliation took too long. Expected time: between 68 and 100 seconds."
   exit 1
 fi
