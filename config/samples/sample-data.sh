@@ -1,7 +1,7 @@
 #!/bin/bash
 kubectl create ns pb
-FROM=202
-TO=202
+FROM=1
+TO=200
 i=$FROM
 while [[ $i -le $TO ]]
 do
