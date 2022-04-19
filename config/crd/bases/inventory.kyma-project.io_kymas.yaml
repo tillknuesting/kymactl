@@ -15,7 +15,14 @@ spec:
     singular: kyma
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Ready
+      type: string
+    - jsonPath: .status.waitingFor
+      name: WaitingFor
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Kyma is the Schema for the kymas API
@@ -48,6 +55,16 @@ spec:
             type: object
           status:
             description: KymaStatus defines the observed state of Kyma
+            properties:
+              status:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
+              waitingFor:
+                items:
+                  type: string
+                type: array
             type: object
         type: object
     served: true

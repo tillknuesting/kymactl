@@ -45,6 +45,13 @@ func IgnoreAlreadyExists(err error) error {
 	return err
 }
 
+func IgnoreStatusUpdateConflict(err error) error {
+	if apierrors.IsConflict(err) {
+		return nil
+	}
+	return err
+}
+
 //+kubebuilder:rbac:groups=inventory.kyma-project.io,resources=kymas,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=inventory.kyma-project.io,resources=kymas/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=inventory.kyma-project.io,resources=kymas/finalizers,verbs=update
@@ -80,8 +87,6 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.V(2).Info("Fetching components", "count", len(components.Items))
-
 	constructComponentForKyma := func(kyma *inventoryv1alpha1.Kyma, module inventoryv1alpha1.ComponentSpec) (*inventoryv1alpha1.HelmComponent, error) {
 		name := fmt.Sprintf("%s-%s", kyma.Name, module.Name)
 
@@ -100,15 +105,21 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return component, nil
 	}
 
+	// Finding modules to create
+	kyma.Status.WaitingFor = []string{}
 	for _, m := range kyma.Spec.Components {
 		found := false
 		for _, c := range components.Items {
 			if c.Spec.ComponentName == m.Name {
 				found = true
+				if c.Status.Status != "success" {
+					kyma.Status.WaitingFor = append(kyma.Status.WaitingFor, m.Name)
+				}
 				break
 			}
 		}
 		if !found {
+			kyma.Status.WaitingFor = append(kyma.Status.WaitingFor, m.Name)
 			log.Info("Create module", "name", m.Name)
 			component, err := constructComponentForKyma(&kyma, m)
 			if err != nil {
@@ -124,6 +135,18 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
+	// Update status
+	if len(kyma.Status.WaitingFor) == 0 {
+		kyma.Status.Status = "success"
+	} else {
+		kyma.Status.Status = "reconciling"
+	}
+	if err := r.Status().Update(ctx, &kyma); err != nil {
+		return ctrl.Result{}, IgnoreStatusUpdateConflict(err)
+	}
+	log.V(2).Info("Status update", "count", len(components.Items), "waiting for", len(kyma.Status.WaitingFor))
+
+	// Delete orphan modules (removed from kyma.Spec)
 	for _, c := range components.Items {
 		found := false
 		for _, m := range kyma.Spec.Components {
@@ -174,6 +197,7 @@ func (r *KymaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.Kyma{}).
 		Owns(&inventoryv1alpha1.HelmComponent{}).
+		//		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10, RateLimiter: CustomRateLimiter()}).
 		Complete(r)
 }

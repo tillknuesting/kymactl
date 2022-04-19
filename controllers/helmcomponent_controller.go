@@ -63,23 +63,19 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	prevStatus := helmComponent.Status.Status
-	requeue := 0 * time.Second
+	requeue := time.Duration(len(helmComponent.Spec.ComponentName)) * time.Second
+
 	switch prevStatus {
 	case "pending":
 		helmComponent.Status.Status = "started"
-		requeue = 10 * time.Second
 	case "started":
 		helmComponent.Status.Status = "failing"
-		requeue = 30 * time.Second
 	case "failing":
 		helmComponent.Status.Status = "retrying"
-		requeue = 30 * time.Second
 	case "retrying":
 		helmComponent.Status.Status = "success"
-		requeue = 30 * time.Second
 	case "success":
 		requeue = 0 * time.Second
-
 	default:
 		helmComponent.Status.Status = "pending"
 		requeue = 1 * time.Second

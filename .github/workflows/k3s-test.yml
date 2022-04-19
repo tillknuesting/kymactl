@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       debug_enabled:
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        description: 'Run the build with tmate debugging'     
         required: false
         default: false
   push:
@@ -13,8 +13,8 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - main
-  # schedule:
-  #   - cron: '0 * * * *' # every hour
+  schedule:
+    - cron: '0 * * * *' # every hour
 
 jobs:
   build:
@@ -35,3 +35,6 @@ jobs:
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+    - name: Performance test
+      run: |
+        ./config/samples/sample-data.sh

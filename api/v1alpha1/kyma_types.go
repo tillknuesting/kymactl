@@ -41,10 +41,14 @@ type KymaSpec struct {
 type KymaStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status     string   `json:"status,omitempty"`
+	WaitingFor []string `json:"waitingFor,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.status"
+//+kubebuilder:printcolumn:name="WaitingFor",type="string",JSONPath=".status.waitingFor"
 
 // Kyma is the Schema for the kymas API
 type Kyma struct {

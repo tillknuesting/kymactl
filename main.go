@@ -66,8 +66,8 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	config := ctrl.GetConfigOrDie()
-	config.QPS = 100
-	config.Burst = 100
+	config.QPS = 150
+	config.Burst = 150
 
 	setupLog.Info("Configuration", "QPS", config.QPS, "Burst", config.Burst)
 

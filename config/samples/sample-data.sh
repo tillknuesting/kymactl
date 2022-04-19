@@ -1,5 +1,9 @@
 #!/bin/bash
-for i in {1..100}
+kubectl create ns pb
+FROM=202
+TO=202
+i=$FROM
+while [[ $i -le $TO ]]
 do
    echo "$i"
    cat <<EOF | kubectl apply -f -
@@ -32,4 +36,15 @@ spec:
   - name: "application-connector"
     namespace: "kyma-integration"
 EOF
+  ((i = i + 1))
 done
+SECONDS=0
+while [[ $(kubectl get kyma kyma-sample-${TO} -n pb -o 'jsonpath={..status.status}') != "success" ]]; do echo "Waiting for $(kubectl get kyma kyma-sample-${TO} -n pb -o 'jsonpath={..status.waitingFor}')"; sleep 2; done
+
+echo "Last component reconciled in $SECONDS sec."
+
+if [ $SECONDS -ge 100 ]
+then
+  echo "Reconciliation took too long. Expected time: 68 - 90 seconds."
+  exit 1
+fi
