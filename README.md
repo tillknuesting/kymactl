@@ -50,7 +50,7 @@ Basic scenario:
 
 1. Create Kyma CR with list of modules
 2. Kyma controller creates HelmComponent CR for each module
-3. HelmComponent controller simulates installation lifecycle: `pending (10s) -> started (30s) -> failing (30s) -> retrying (30s) -> success`. Reconciliation of single component should be done in about 1:40s
+3. HelmComponent controller simulates installation lifecycle: `pending -> started -> failing -> retrying  -> success`. The transition to the next state takes N seconds where N=len(component name). The reconciliation of all components for single Kyma takes about 68 seconds.
 
 The goal is to prove that Kyma operator can reconcile thousands of clusters in parallel without issues related to kubernetes API server and its storage (etcd). The simplest possible test is just to generate 1000 or more Kyma CR using [sample-data.sh](./config/samples/sample-data.sh) script and check how long it will take to bring all helm components (18 * 1000 = 18000) to the status `success`. 
 Kubernetes API Server will not allow to create all these resources at once due to built-in rate limiting. Usually it is not a problem, as it is not expected that large number of Kyma installations will be started at the same time. Nevertheless, we should try to find the settings that allow to process thousands clusters in the time that is comparable to the time that is required to reconcile single component.
@@ -62,8 +62,8 @@ Controllers publish metrics and reconciliation queue length can be observed usin
 Default kubernetes client is configured with QPS=20 and Burst=30. For the scenario where 1 Kyma resource creates 18 modules we can create/update at most une Kyma installation per second. More reasonable setting would be:
 
 ```
-cfg.QPS = 100
-cfg.Burst = 100
+cfg.QPS = 150
+cfg.Burst = 150
 ```
 
 This is inspired by prometheus operator settings:
