@@ -1,0 +1,12 @@
+loki:
+  resources:
+    limits:
+      memory: 512Mi
+  extraArgs:
+    log.level: warn
+
+fluent-bit:
+  resources:
+    limits:
+      cpu: 800m
+      memory: 256Mi

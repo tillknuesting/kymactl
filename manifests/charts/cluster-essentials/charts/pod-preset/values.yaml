@@ -1,0 +1,31 @@
+global:
+  priorityClassName: ""
+webhook:
+  replicaCount: 1
+  image:
+    pullPolicy: IfNotPresent
+  verbosity: 6
+  pdb:
+    enabled: false
+    minAvailable: 0
+  timeout: 10
+  resources:
+    requests:
+      cpu: 20m
+      memory: 24Mi
+    limits:
+      cpu: 100m
+      memory: 36Mi
+
+controller:
+  enabled: false
+  image:
+    pullPolicy: IfNotPresent
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  privileged: false
+

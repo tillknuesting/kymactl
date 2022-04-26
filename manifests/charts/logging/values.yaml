@@ -1,0 +1,52 @@
+rbac:
+  create: true
+  pspEnabled: true
+
+networkPolicy:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name:
+  annotations: {}
+
+# enable tracing for debug, need install jaeger and specify right jaeger_agent_host
+tracing:
+  jaegerAgentHost:
+
+fluent-bit:
+  enabled: true
+
+loki:
+  enabled: true
+
+global:
+  containerRegistry:
+    path: eu.gcr.io/kyma-project
+  images:
+    fluent_bit:
+      name: fluent-bit
+      version: 1.9.2-63880e48
+      directory: tpi
+    loki:
+      name: loki
+      version: 2.2.1-581a4014
+      directory: tpi
+    alpine:
+      name: "alpine"
+      version: "3.15.3"
+      directory: "external"
+  kymaRuntime:
+    adminGroup: runtimeAdmin
+    operatorGroup: runtimeOperator
+    developerGroup: runtimeDeveloper
+    namespaceAdminGroup: runtimeNamespaceAdmin
+  istio:
+    gateway:
+      name: kyma-gateway
+      namespace: kyma-system
+  telemetry:
+    enabled: false
+  tracing:
+    enabled: true
+  highPriorityClassName: "kyma-system-priority"

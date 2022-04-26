@@ -1,0 +1,49 @@
+jobs:
+  crdsInConfigMap: 20
+
+global:
+  installCRDs: false
+  disableLegacyConnectivity: false
+  podSecurityPolicy:
+    privileged: false
+  priorityClassName: ""
+  highPriorityClassName: "kyma-system-priority"
+  priorityClassValue: 2000000
+  highPriorityClassValue: 2100000
+  containerRegistry:
+    path: eu.gcr.io/kyma-project
+  images:
+    podpreset_webhook:
+      name: "podpreset-webhook"
+      version: "663a99a3"
+      directory: "incubator"
+    podpreset_controller:
+      name: "podpreset-controller"
+      version: "663a99a3"
+      directory: "incubator"
+
+image:
+  pullPolicy: IfNotPresent
+
+limitRange:
+  max:
+    memory: 4Gi
+  default:
+    memory: 96Mi
+  defaultRequest:
+    memory: 32Mi
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  privileged: false
+  runAsGroup: 65534
+  runAsNonRoot: true
+  runAsUser: 65534
+
+pod-preset:
+  key: ""
+  cert: ""
+  caCert: ""

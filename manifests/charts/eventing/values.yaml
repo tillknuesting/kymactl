@@ -1,0 +1,70 @@
+# globally shared values among Helm subcharts
+global:
+  containerRegistry:
+    path: eu.gcr.io/kyma-project
+  images:
+    eventing_controller:
+      name: eventing-controller
+      version: PR-14066
+      pullPolicy: "IfNotPresent"
+    publisher_proxy:
+      name: event-publisher-proxy
+      version: PR-14070
+    nats:
+      name: nats
+      version: 2.7.4-alpine-2022-04-05
+      directory: external
+    nats_config_reloader:
+      name: natsio/nats-server-config-reloader
+      version: 0.6.3
+      directory: external
+    prometheus_nats_exporter:
+      name: natsio/prometheus-nats-exporter
+      version: 0.9.2
+      directory: external
+
+  jetstream:
+    enabled: false
+    # Storage type of the stream, memory or file.
+    storage: memory
+
+  # secretName defines optionally another name than the default secret name
+  secretName: ""
+
+  # domainName is the global domain used in Kyma
+  domainName: "kyma.example.com"
+
+  istio:
+    proxy:
+      statusPort: 15020
+      portName: http-status
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    privileged: false
+
+  # eventTypePrefix is an optional prefix for the eventType
+  # note that the eventType format is: eventTypePrefix.applicationName.eventName.eventVersion
+  # for example: sap.kyma.custom.myapp.order.created.v1 (where the eventName is order.created)
+  eventTypePrefix: "sap.kyma.custom"
+
+  log:
+    format: "json"
+    level: "info"
+
+  configMap:
+    name: eventing
+    keys:
+      eventTypePrefix: "eventTypePrefix"
+
+authentication:
+  # oauthClientId is the Oauth2 client id used in order to get an Oauth2 token from BEB
+  oauthClientId: ""
+  # oauthClientSecret is the Oauth2 secret used in order to get an Oauth2 token from BEB
+  oauthClientSecret: ""
+  # oauthTokenEndpoint is the Oauth2 endpoint from BEB from where Oauth2 tokens can be retrieved
+  oauthTokenEndpoint: ""
+  # publishUrl is the URL for publishing events to BEB
+  publishUrl: ""
+  # bebNamespace is the name of the namespace BEB is provisioned with
+  bebNamespace: ""

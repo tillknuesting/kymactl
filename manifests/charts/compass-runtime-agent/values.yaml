@@ -1,0 +1,85 @@
+global:
+  domainName: kyma.example.com
+  containerRegistry:
+    path: eu.gcr.io/kyma-project
+  images:
+    compass_runtime_agent:
+      name: "compass-runtime-agent"
+      version: "fe744957"
+  istio:
+    gateway:
+      name: kyma-gateway
+      namespace: kyma-system
+  skrConfigmapNamespace: kyma-system
+
+managementPlane: {} # default value
+
+compassRuntimeAgent:
+  image:
+    pullPolicy: IfNotPresent
+  sync:
+    controllerSyncPeriod: 15s
+    minimalConfigSyncTime: 15s
+  resources:
+    integrationNamespace: "kyma-integration"
+    dexSecretNamespace: "kyma-system"
+    dexSecretName: "admin-user"
+    gatewayPort: 8080
+    uploadServiceUrl: http://rafter-upload-service.kyma-system.svc.cluster.local:80
+    centralGatewayServiceUrl: http://central-application-gateway.kyma-system.svc.cluster.local:8082
+  config:
+    insecureConfigurationFetch: true
+    skipAppsTLSVerification: false
+    secret:
+      name: compass-agent-configuration
+      namespace: compass-system
+  certificates:
+    renewal:
+      validityThreshold: "0.3"
+    clientCertificate:
+      secret:
+        name: cluster-client-certificates
+        namespace: compass-system
+    caCertificate:
+      secret:
+        name: kyma-gateway-certs-cacert
+        namespace: istio-system
+        migration:
+          name: app-connector-certs
+          keys: ["cacert"]
+  compass:
+    skipTLSVerification: true
+  director:
+    proxy:
+      port: 8081
+      insecureSkipVerify: true
+  debug:
+    queryLogging: false
+  metrics:
+    loggingTimeInterval: 30m
+  healthCheck:
+    port: 8090
+    proxyStatusPort: 15020
+  tests:
+    labels:
+      integration: true
+      after-upgrade: true
+    enabled: true
+    mockService:
+      port: 8080
+    configApplicationWaitTime: 50s
+    proxyInvalidationWaitTime: 120s
+    applicationInstallationTimeout: 180s
+    graphqlLogs: false
+    director:
+      url: "https://compass-gateway.{{ .Values.global.domainName }}/director/graphql"
+    idProvider:
+      clientTimeout: 10s
+  livenessProbe:
+    initialDelaySeconds: 50
+    timeoutSeconds: 1
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 2

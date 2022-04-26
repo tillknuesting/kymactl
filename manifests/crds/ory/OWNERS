@@ -1,0 +1,8 @@
+reviewers:
+  - api-gateway-reviewers
+approvers:
+  - api-gateway-approvers
+
+labels:
+- area/api-gateway
+- area/service-mesh
