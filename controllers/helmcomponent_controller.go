@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -32,6 +33,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/ratelimiter"
 
 	inventoryv1alpha1 "github.com/kyma-incubator/kymactl/api/v1alpha1"
+	"github.com/kyma-incubator/kymactl/manifests"
+	"github.com/kyma-incubator/kymactl/pkg/helm"
 )
 
 // HelmComponentReconciler reconciles a HelmComponent object
@@ -79,13 +82,13 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		helmComponent.Status.Status = "pending"
 		requeue = 1 * time.Second
 	}
-	// renderer := helm.NewGenericRenderer(manifests.FS, "charts/"+helmComponent.Spec.ComponentName, helmComponent.Spec.ComponentName, helmComponent.Spec.Namespace)
-	// renderer.Run()
-	// manifest, err := renderer.RenderManifest("")
-	// if err != nil {
-	// 	log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
-	// }
-	// log.V(3).Info("Manifest", "yaml", manifest)
+	renderer := helm.NewGenericRenderer(manifests.FS, "charts/"+helmComponent.Spec.ComponentName, helmComponent.Spec.ComponentName, helmComponent.Spec.Namespace)
+	renderer.Run()
+	manifest, err := renderer.RenderManifest("")
+	if err != nil {
+		log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
+	}
+	log.V(3).Info("Manifest", "yaml", manifest)
 
 	log.V(2).Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
 	if helmComponent.Status.Status != prevStatus {
