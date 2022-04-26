@@ -74,6 +74,7 @@ Observations:
 ![](./assets/apiserver-storage.png)
 ![](./assets/apiserver-watches.png)
 
+# Findings
 ## Kubernetes client rate limiting
 
 Default kubernetes client is configured with QPS=20 and Burst=30. For the scenario where 1 Kyma resource creates 18 modules we can create/update at most une Kyma installation per second. More reasonable setting would be:
@@ -100,3 +101,13 @@ func CustomRateLimiter() ratelimiter.RateLimiter {
 }
 ```
 Good explanation of rate limits in controllers: [https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/?utm_source=pocket_mylist](https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/?utm_source=pocket_mylist)
+
+## Time based reconciliation
+
+Time based reconciliation has default interval of 10 hours. It is not recommended to change it unless you know what you are doing. But in our case it can be a good option to force reconciliation more frequently. We need just to ensure that reconciliation will not overload controller with massive amount of objects to reconcile. You can simulate what will happen when time based reconciliation is triggered by restarting your controller when a large number of objects exist in the cluster. Ensure you can process them all in reasonable time and with reasonable resources (tests it!).
+## Modify objects only if you need
+
+Each modification even without changes triggers other controllers that watch the resource. It is true also for status subresource. It is a good practice to modify the object only when it is needed. Additionally, you can opt out from updates that do not change the object generation (e.g. status update) using event filter when you create a controller:
+```
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+```
