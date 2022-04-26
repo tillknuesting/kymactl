@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -66,8 +67,12 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	config := ctrl.GetConfigOrDie()
+
+	// Performance customizations
 	config.QPS = 150
 	config.Burst = 150
+	// Time based reconciliation every 10 minutes (generates load when big number of components exists in the cluster)
+	syncPeriod := time.Duration(10) * time.Minute
 
 	setupLog.Info("Configuration", "QPS", config.QPS, "Burst", config.Burst)
 
@@ -78,6 +83,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "0f60298a.kyma-project.io",
+		SyncPeriod:             &syncPeriod,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
