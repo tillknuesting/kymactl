@@ -135,14 +135,19 @@ func (r *KymaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
+	oldStatus := kyma.Status.Status
 	// Update status
 	if len(kyma.Status.WaitingFor) == 0 {
 		kyma.Status.Status = "success"
 	} else {
 		kyma.Status.Status = "reconciling"
 	}
-	if err := r.Status().Update(ctx, &kyma); err != nil {
-		return ctrl.Result{}, IgnoreStatusUpdateConflict(err)
+
+	// Do not update status if it was success before
+	if oldStatus != kyma.Status.Status || kyma.Status.Status == "reconciling" {
+		if err := r.Status().Update(ctx, &kyma); err != nil {
+			return ctrl.Result{}, IgnoreStatusUpdateConflict(err)
+		}
 	}
 	log.V(2).Info("Status update", "count", len(components.Items), "waiting for", len(kyma.Status.WaitingFor))
 
