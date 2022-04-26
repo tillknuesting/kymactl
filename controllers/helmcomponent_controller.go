@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -95,10 +94,10 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	log.V(2).Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
 	if helmComponent.Status.Status != prevStatus {
 
-		_, err := renderer.RenderManifest("")
-		if err != nil {
-			log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
-		}
+		// _, err := renderer.RenderManifest("")
+		// if err != nil {
+		// 	log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
+		// }
 
 		if err := r.Status().Update(ctx, &helmComponent); err != nil {
 			return ctrl.Result{}, err
