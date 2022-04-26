@@ -44,7 +44,7 @@ kubectl create ns pb
 ./config/samples/sample-data.sh
 ```
 
-# Performance
+# Performance test
 
 Basic scenario:
 
@@ -56,6 +56,23 @@ The goal is to prove that Kyma operator can reconcile thousands of clusters in p
 Kubernetes API Server will not allow to create all these resources at once due to built-in rate limiting. Usually it is not a problem, as it is not expected that large number of Kyma installations will be started at the same time. Nevertheless, we should try to find the settings that allow to process thousands clusters in the time that is comparable to the time that is required to reconcile single component.
 
 Controllers publish metrics and reconciliation queue length can be observed using metrics endpoint directly when controller runs locally (`curl http://localhost:8080/metrics`). In the cluster you can use Kyma monitoring components (prometheus and grafana) to see controller metrics.
+
+## Results
+In the experiment 4000 Kyma objects where created in 4 batches with 1000 each, what gives 72000 HelmComponent objects created.
+Objects where created in the sequence using [simple bash script](./config/samples/sample-data.sh)
+
+Observations:
+- Script was running with the rate 1.1. object per second up to 4th batch. In the last batch kubectl commands where significantly slower
+- Reconciliation queue was not growing - all the objects were created immediately and transition to the next state was done in the timely manner
+- The memory allocation for controller grows with the number of CRs. With empty cluster controller takes about 40MB, and grows to 350MB for 76000 watched objects.
+
+![](./assets/controller-runtime.png)
+![](./assets/controller-pod.png)
+![](./assets/controller-golang.png)
+![](./assets/apiserver-req-resp.png)
+![](./assets/apiserver-rates.png)
+![](./assets/apiserver-storage.png)
+![](./assets/apiserver-watches.png)
 
 ## Kubernetes client rate limiting
 
