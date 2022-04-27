@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -39,8 +40,8 @@ import (
 // HelmComponentReconciler reconciles a HelmComponent object
 type HelmComponentReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	renderer map[string]*helm.Renderer
+	Scheme    *runtime.Scheme
+	manifests map[string]string
 }
 
 //+kubebuilder:rbac:groups=inventory.kyma-project.io,resources=helmcomponents,verbs=get;list;watch;create;update;patch;delete
@@ -82,23 +83,20 @@ func (r *HelmComponentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		helmComponent.Status.Status = "pending"
 		requeue = 1 * time.Second
 	}
-	renderer := r.renderer[helmComponent.Spec.ComponentName]
-	if renderer == nil {
-		log.Info("Renderer not found for")
-		renderer = helm.NewGenericRenderer(manifests.FS, "charts/"+helmComponent.Spec.ComponentName, helmComponent.Spec.ComponentName, helmComponent.Spec.Namespace)
-		renderer.Run()
-		r.renderer[helmComponent.Spec.ComponentName] = renderer
-		log.Info("Added renderer for")
-	}
 
 	log.V(2).Info("Reconciliation", "status", helmComponent.Status.Status, "requeue", requeue)
 	if helmComponent.Status.Status != prevStatus {
-
-		// _, err := renderer.RenderManifest("")
-		// if err != nil {
-		// 	log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
-		// }
-
+		manifest := r.manifests[helmComponent.Spec.ComponentName]
+		if manifest == "" {
+			renderer := helm.NewGenericRenderer(manifests.FS, "charts/"+helmComponent.Spec.ComponentName, helmComponent.Spec.ComponentName, helmComponent.Spec.Namespace)
+			renderer.Run()
+			manifest, err := renderer.RenderManifest("")
+			if err != nil {
+				log.Error(fmt.Errorf("Rendering error"), "Cannot render chart")
+			}
+			log.Info("New manifest rendered")
+			r.manifests[helmComponent.Spec.ComponentName] = manifest
+		}
 		if err := r.Status().Update(ctx, &helmComponent); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -117,7 +115,7 @@ func CustomRateLimiter() ratelimiter.RateLimiter {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *HelmComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.renderer = make(map[string]*helm.Renderer)
+	r.manifests = make(map[string]string)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&inventoryv1alpha1.HelmComponent{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).

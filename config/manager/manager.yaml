@@ -25,6 +25,7 @@ spec:
       labels:
         control-plane: controller-manager
         kyma-project.io/component: controller
+        sidecar.istio.io/inject: "false"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -53,7 +54,7 @@ spec:
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           limits:
-            cpu: 500m
+            cpu: 3500m
             memory: 512Mi
           requests:
             cpu: 10m

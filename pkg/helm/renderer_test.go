@@ -3,6 +3,7 @@ package helm
 import (
 	"io/fs"
 	"testing"
+	"time"
 
 	"github.com/kyma-incubator/kymactl/manifests"
 	"gopkg.in/yaml.v2"
@@ -26,6 +27,7 @@ func TestAllChartsCanBeRendered(t *testing.T) {
 
 	for _, c := range list {
 		var component = c.(map[interface{}]interface{})
+		start := time.Now()
 
 		name := component["name"].(string)
 		namespace := "kyma-system"
@@ -33,7 +35,6 @@ func TestAllChartsCanBeRendered(t *testing.T) {
 			namespace = component["namespace"].(string)
 		}
 
-		t.Logf("Component %s (%s)", name, namespace)
 		r := NewGenericRenderer(manifests.FS, "charts/"+name, name, namespace)
 
 		err = r.Run()
@@ -45,10 +46,12 @@ func TestAllChartsCanBeRendered(t *testing.T) {
 			t.Logf("No evaluation profile for %s", name)
 		}
 
-		_, err = r.RenderManifest(evaluation)
+		manifest, err := r.RenderManifest(evaluation)
 		if err != nil {
 			t.Error(err)
 		}
+		elapsed := time.Since(start)
+		t.Logf("Rendered manifest %s, size: %d, time: %s", name, len(manifest), &elapsed)
 
 	}
 }
