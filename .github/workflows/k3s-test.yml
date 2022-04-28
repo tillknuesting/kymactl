@@ -63,7 +63,7 @@ jobs:
 
     - name: Deploy controller
       run: |
-        make deploy IMG=ghcr.io/kyma-operator:latest
+        make deploy IMG=ghcr.io/${{ github.actor }}/kyma-operator:latest
         while [[ $(kubectl get deployment -n kymactl-system kymactl-controller-manager -o 'jsonpath={..status.availableReplicas}') != 1 ]]; do echo "Waiting for kymactl controller to be available"; sleep 2; done
 
     - name: Setup tmate session
