@@ -32,6 +32,7 @@ jobs:
         make install 
         make docker-build docker-push IMG=registry.localhost:5000/kyma-operator:latest
         make deploy IMG=registry.localhost:5000/kyma-operator:latest
+        while [[ $(kubectl get deployment -n kymactl-system kymactl-controller-manager -o 'jsonpath={..status.availableReplicas}') != 1 ]]; do echo "Waiting for kymactl controller to be available"; sleep 2; done
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
