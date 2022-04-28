@@ -111,3 +111,8 @@ Each modification even without changes triggers other controllers that watch the
 ```
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 ```
+## Avoid CPU intensive tasks 
+
+Rendering helm charts of kyma components is a CPU intensive task. If the rendering was executed in every reconciliation loop the queue was growing really fast. When rendered manifest string was cached everything came back to normal. 
+
+
