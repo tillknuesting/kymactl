@@ -53,6 +53,8 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var syncPeriod time.Duration
+	flag.DurationVar(&syncPeriod, "sync-period", time.Duration(10)*time.Minute, "Time based reconciliation period.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -71,10 +73,8 @@ func main() {
 	// Performance customizations
 	config.QPS = 150
 	config.Burst = 150
-	// Time based reconciliation every 10 minutes (generates load when big number of components exists in the cluster)
-	syncPeriod := time.Duration(10) * time.Minute
 
-	setupLog.Info("Configuration", "QPS", config.QPS, "Burst", config.Burst)
+	setupLog.Info("Configuration", "QPS", config.QPS, "Burst", config.Burst, "syncPeriod", syncPeriod)
 
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:                 scheme,
