@@ -14,7 +14,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 * * * *' # every hour
+    - cron: '0 18 * * 1-5' # Runs at 18:00 UTC Monday-Friday
 
 jobs:
   build:
